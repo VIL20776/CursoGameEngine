@@ -5,6 +5,7 @@ import rl "vendor:raylib"
 import ecs "YggECS/src"
 
 // Components
+Name :: cstring
 Color :: rl.Color
 Rectangle :: rl.Rectangle
 Velocity :: rl.Vector2
@@ -92,7 +93,7 @@ collisionSystem :: proc(ctx: ^Game) {
           block := &blocks[other]
 
           if rl.CheckCollisionRecs(ball^, block^) && eid != other_eid{
-            ecs.remove_component(ctx.world, other_eid, Rectangle)
+            ecs.remove_entity(ctx.world, other_eid)
             vel.y *= -1
           }
         }

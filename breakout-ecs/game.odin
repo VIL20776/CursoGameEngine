@@ -2,6 +2,7 @@ package breakout
 
 import "core:fmt"
 import rl "vendor:raylib"
+import mu "vendor:microui"
 import ecs "YggECS/src"
 
 Game :: struct {
@@ -12,6 +13,8 @@ Game :: struct {
   isRunning: bool,
   dT: f32,
 }
+
+DEBUG_PANEL_WIDTH :: 500
 
 ROWS :: 4
 COLUMNS :: 10 
@@ -28,17 +31,21 @@ Deinit :: proc(ctx: ^Game) {
 }
 
 Setup :: proc(ctx: ^Game) {
-  rl.InitWindow(ctx.width, ctx.height, ctx.title)
+  rl.InitWindow(ctx.width + DEBUG_PANEL_WIDTH, ctx.height, ctx.title)
   rl.SetTargetFPS(60)
 
   ball := ecs.add_entity(ctx.world)
   ball_rec := Rectangle{x = 10, y = f32(ctx.height / 2) + 10, width = 15, height = 15}
+  ball_name: Name = "Ball"
+  ecs.add_component(ctx.world, ball, ball_name)
   ecs.add_component(ctx.world, ball, ball_rec)
   ecs.add_component(ctx.world, ball, rl.WHITE)
   ecs.add_component(ctx.world, ball, Velocity{150, 150})
   
   paddle := ecs.add_entity(ctx.world)
   paddle_rec := Rectangle{x = f32(ctx.width/2) - ball_rec.width*5, y = f32(ctx.height - 15), width = ball_rec.width*10, height = 15}
+  paddle_name: Name = "Paddle"
+  ecs.add_component(ctx.world, paddle, paddle_name)
   ecs.add_component(ctx.world, paddle, paddle_rec)
   ecs.add_component(ctx.world, paddle, rl.WHITE)
   ecs.add_component(ctx.world, paddle, Movement{dir = 1, speed = 200})
@@ -53,6 +60,8 @@ Setup :: proc(ctx: ^Game) {
     block := Rectangle{x, y, block_width, block_height}
 
     b := ecs.add_entity(ctx.world)
+    b_name: Name = fmt.caprintf("Block %d", b)
+    ecs.add_component(ctx.world, b, b_name)
     ecs.add_component(ctx.world, b, block)
     ecs.add_component(ctx.world, b, rl.BLUE)
   }
