@@ -14,8 +14,6 @@ Game :: struct {
   dT: f32,
 }
 
-DEBUG_PANEL_WIDTH :: 500
-
 ROWS :: 4
 COLUMNS :: 10 
 
@@ -31,7 +29,7 @@ Deinit :: proc(ctx: ^Game) {
 }
 
 Setup :: proc(ctx: ^Game) {
-  rl.InitWindow(ctx.width + DEBUG_PANEL_WIDTH, ctx.height, ctx.title)
+  rl.InitWindow(ctx.width + GUI_PANEL_WIDTH, ctx.height, ctx.title)
   rl.SetTargetFPS(60)
 
   ball := ecs.add_entity(ctx.world)
@@ -60,7 +58,7 @@ Setup :: proc(ctx: ^Game) {
     block := Rectangle{x, y, block_width, block_height}
 
     b := ecs.add_entity(ctx.world)
-    b_name: Name = fmt.caprintf("Block %d", b)
+    b_name: Name = fmt.aprintf("Block %d", b)
     ecs.add_component(ctx.world, b, b_name)
     ecs.add_component(ctx.world, b, block)
     ecs.add_component(ctx.world, b, rl.BLUE)
@@ -77,14 +75,15 @@ HandleEvents :: proc(ctx: ^Game) {
   inputSystem(ctx)
 }
 
-Update :: proc(ctx: ^Game) {
+Update :: proc(ctx: ^Game, gui: ^GUI) {
   limitSystem(ctx)
   victorySystem(ctx)
   collisionSystem(ctx)
   moveSystem(ctx)
+  UpdateGUI(ctx, gui)
 }
 
-Render :: proc(ctx: ^Game) {
+Render :: proc(ctx: ^Game, gui: ^GUI) {
   rl.BeginDrawing()
 
   rl.ClearBackground(rl.BLACK)
@@ -92,6 +91,7 @@ Render :: proc(ctx: ^Game) {
   rl.DrawText(cstr, posX = 10, posY = 10, fontSize = 20, color = rl.GRAY)
   
   renderSystem(ctx)
+  RenderGUI(ctx, gui)
 
   rl.EndDrawing()
 }

@@ -5,7 +5,7 @@ import rl "vendor:raylib"
 import ecs "YggECS/src"
 
 // Components
-Name :: cstring
+Name :: string
 Color :: rl.Color
 Rectangle :: rl.Rectangle
 Velocity :: rl.Vector2
@@ -37,15 +37,15 @@ limitSystem :: proc(ctx: ^Game) {
       ball := &rectangles[i]
       vel := &velocities[i]
 
-      if ball.x >= f32(ctx.width) - ball.width {
+      if ball.x > f32(ctx.width) - ball.width {
         vel.x *= -1
       }
   
-      if ball.x < 0 {
+      if ball.x <= 0 {
         vel.x *= -1
       }
 
-      if ball.y < 0 {
+      if ball.y <= 0 {
         vel.y *= -1
       }
 
