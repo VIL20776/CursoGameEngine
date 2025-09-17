@@ -1,3 +1,6 @@
 [submodule "breakout-ecs/YggECS"]
 	path = breakout-ecs/YggECS
 	url = https://github.com/NateTheGreatt/YggECS.git
+[submodule "Game/YggECS"]
+	path = Game/YggECS
+	url = https://github.com/NateTheGreatt/YggECS.git
