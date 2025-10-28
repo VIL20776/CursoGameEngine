@@ -10,7 +10,7 @@ TextureManager :: struct{
 
 LoadTexture :: proc(tm: ^TextureManager, path: cstring) -> (rl.Texture2D, bool) {
     if !(path in tm.textures) do tm.textures[path] = rl.LoadTexture(path)
-    return tm.textures[path]
+    return tm.textures[path], rl.IsTextureValid(tm.textures[path])
 }
 
 UnloadTexture :: proc(tm: ^TextureManager, path: cstring) {

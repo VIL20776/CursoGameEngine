@@ -12,14 +12,16 @@ Texture :: struct {
 Tilemap :: struct {
     positions: []rl.Vector2,
     tiles: []rl.Vector2,
-    tile_size: int
+    draw_size: f32,
+    tile_size: f32,
+    size: int
 }
 
 Animation :: struct {
-    start: rl.Rectangle,
+    start: rl.Vector2,
+    size: rl.Vector2,
     offset: int,
     frames: int,
-    size: int,
     time: f64,
     nextTime: f64
 }
@@ -31,3 +33,5 @@ Movement :: struct{
 }
 
 Position :: rl.Vector2
+
+

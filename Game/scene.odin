@@ -2,7 +2,7 @@ package game
 
 Scene :: struct {
     // Data
-    tilemap_data: []TilemapData,
+    tilemaps: [dynamic]TilemapData,
     // Procedures
     setup: [dynamic]proc(ctx: ^Game),
     events: [dynamic]proc(ctx: ^Game),
@@ -29,6 +29,11 @@ DeinitScene :: proc(scene: ^Scene) {
     delete(scene.events)
     delete(scene.update)
     delete(scene.render)
+
+    for tilemap in scene.tilemaps {
+        delete(tilemap.bit_tiles)
+        delete(tilemap.bitmap)
+    }
 }
 
 AddSystems :: proc(scene: ^Scene, phase: ScenePhase, systems: ..proc(ctx: ^Game)) {

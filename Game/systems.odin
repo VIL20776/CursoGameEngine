@@ -11,18 +11,18 @@ PlayerSetupSystem :: proc(ctx: ^Game) {
     player := ecs.create_entity(world)
 
     player_name: Name = "Player"
-    texture_data, ok := LoadTexture(ctx.tm, "sprites/test.png")
+    texture_data, ok := LoadTexture(ctx.tm, "sprites/cat.png")
     if (!ok) {
         fmt.println("Error loading texture.")
         return;
     }
-    player_texture := Texture{data=texture_data, path="sprites/test.png"}
+    player_texture := Texture{data=texture_data, path="sprites/cat.png"}
     player_anim := Animation{
-        start=rl.Rectangle{x=0, y=0, height=16, width=16},
-        offset=16,
-        frames=4,
-        size=16*4,
-        time=0.5,
+        start=rl.Vector2{16, 16},
+        size=rl.Vector2{16, 16},
+        offset=48,
+        frames=8,
+        time=0.25,
         nextTime=0.0,
     }
 
@@ -38,20 +38,27 @@ PlayerSetupSystem :: proc(ctx: ^Game) {
 TilemapSetupSystem :: proc(ctx: ^Game) {
     world := ctx.world
     
-    tilemap := ecs.create_entity(world)
+    for &tilemap in ctx.scene.tilemaps {
+        tilemap_eid := ecs.create_entity(world)
 
-    tilemap_name: Name = "Tilemap"
-    texture_data, ok := LoadTexture(ctx.tm, "tiles/test.png")
-    if (!ok) {
-        fmt.println("Error loading texture.")
-        return;
+        texture_data, ok := LoadTexture(ctx.tm, tilemap.texture_path)
+        if (!ok) {
+            fmt.println("Error loading texture.")
+            return;
+        }
+        tilemap_texture := Texture{data=texture_data, path=tilemap.texture_path} 
+        for tile, i in tilemap.bit_tiles {
+            fmt.printfln("bit: %d tile %d", tile, i)
+        }
+        tilemap_data: Tilemap = AutoTilingSetup(&tilemap)
+        tilemap_data.tile_size = 16
+        tilemap_data.draw_size = 32
+        fmt.printfln("size: %d", tilemap_data.size)
+
+        ecs.add_component(world, tilemap_eid, tilemap.name)
+        ecs.add_component(world, tilemap_eid, tilemap_texture)
+        ecs.add_component(world, tilemap_eid, tilemap_data)
     }
-    tilemap_texture := Texture{data=texture_data, path="tiles/test.png"} 
-    tilemap_data: Tilemap = {positions={}, tiles={}, tile_size=16}
-
-    ecs.add_component(world, tilemap, tilemap_name)
-    ecs.add_component(world, tilemap, tilemap_texture)
-    ecs.add_component(world, tilemap, tilemap_data)
 }
 
 InputEventSystem :: proc(ctx: ^Game) {
@@ -93,10 +100,13 @@ PlayerSpriteUpdateSystem :: proc(ctx: ^Game) {
             source := &animations[i].start
             move := &movements[i]
 
-            if move.axis_x > 0 do source.x = 16
-            if move.axis_x < 0 do source.x = 32
-            if move.axis_y > 0 do source.y = 48
-            if move.axis_y < 0 do source.y = 0
+            if move.axis_x > 0 do source.y = 160 + 192
+            if move.axis_x < 0 do source.y = 112 + 192
+            if move.axis_y > 0 do source.y = 16 + 192
+            if move.axis_y < 0 do source.y = 64 + 192
+            if move.axis_y + move.axis_x == 0 {
+                if source.y > 192 do source.y -= 192
+            }
         }
     }
 }
@@ -106,7 +116,17 @@ TilemapRenderSystem :: proc(ctx: ^Game) {
         textures := ecs.get_table(ctx.world, archetype, Texture)
         tilemaps := ecs.get_table(ctx.world, archetype, Tilemap)
         for eid, i in archetype.entities {
-            
+            tilemap := tilemaps[i]
+            texture := textures[i]
+
+            for j := 0; j < tilemap.size; j += 1 {
+                dest_pos := tilemap.positions[j] * tilemap.draw_size
+                src_pos := tilemap.tiles[j]
+
+                dest := rl.Rectangle{x=dest_pos.x, y=dest_pos.y, height=tilemap.draw_size, width=tilemap.draw_size}
+                source := rl.Rectangle{x=src_pos.x, y=src_pos.y, height=tilemap.tile_size, width=tilemap.tile_size}    
+                rl.DrawTexturePro(texture.data, source, dest, {0, 0}, 0, rl.WHITE)
+            }
         } 
     }
 }
@@ -118,19 +138,21 @@ SpriteRenderSystem :: proc(ctx: ^Game) {
         animations := ecs.get_table(ctx.world, archetype, Animation)
         for eid, i in archetype.entities {
 
-            source := &animations[i].start
+            source_pos := &animations[i].start
+            size := animations[i].size
 
             offset := animations[i].offset
             frames := animations[i].frames
 
             if rl.GetTime() >= animations[i].nextTime {
-                source.x = cast(f32)((int(source.x) + offset) % (frames * offset))
+                source_pos.x = cast(f32)((int(source_pos.x) + offset) % (frames * offset))
                 animations[i].nextTime = rl.GetTime() + animations[i].time
             }
 
             dest_pos := &positions[i]
-            dest := rl.Rectangle{x=dest_pos.x, y=dest_pos.y, height=16, width=16}
-            rl.DrawTexturePro(textures[i].data, source^, dest, {0, 0}, 0, rl.WHITE)
+            dest := rl.Rectangle{x=dest_pos.x, y=dest_pos.y, height=size.x*2, width=size.y*2}
+            source := rl.Rectangle{x=source_pos.x, y=source_pos.y, height=size.x, width=size.y}
+            rl.DrawTexturePro(textures[i].data, source, dest, {0, 0}, 0, rl.WHITE)
         }
     }
 }
