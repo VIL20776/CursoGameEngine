@@ -2,6 +2,7 @@ package game
 
 Scene :: struct {
     // Data
+    camera: Camera,
     tilemaps: [dynamic]TilemapData,
     // Procedures
     setup: [dynamic]proc(ctx: ^Game),

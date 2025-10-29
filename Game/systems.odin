@@ -61,6 +61,26 @@ TilemapSetupSystem :: proc(ctx: ^Game) {
     }
 }
 
+CameraSetupSystem :: proc(ctx: ^Game) {
+    world := ctx.world
+    
+    ctx.scene.camera = Camera{
+        offset = Position{f32(ctx.width)/2, f32(ctx.height/2)},
+        rotation = 0,
+        zoom = 1
+    }
+
+    for archetype in ecs.query(ctx.world, ecs.has(Position), ecs.has(Movement)) {
+        positions := ecs.get_table(ctx.world, archetype, Position)
+        for eid, i in archetype.entities {
+            pos := &positions[i]
+
+            ctx.scene.camera.target = Position{pos.x + 16, pos.y + 16}
+        }
+    }
+
+}
+
 InputEventSystem :: proc(ctx: ^Game) {
     for archetype in ecs.query(ctx.world, ecs.has(Movement)) {
         movements := ecs.get_table(ctx.world, archetype, Movement)
@@ -86,6 +106,18 @@ MovementUpdateSystem :: proc(ctx: ^Game) {
 
             pos.x += move.axis_x * move.speed * ctx.dT
             pos.y += move.axis_y * move.speed * ctx.dT
+        }
+    }
+}
+
+CameraUpdateSystem :: proc(ctx: ^Game) {
+    camera := &ctx.scene.camera
+    for archetype in ecs.query(ctx.world, ecs.has(Position), ecs.has(Movement)) {
+        positions := ecs.get_table(ctx.world, archetype, Position)
+        for eid, i in archetype.entities {
+            pos := &positions[i]
+
+            camera.target = Position{pos.x + 16, pos.y + 16}
         }
     }
 }

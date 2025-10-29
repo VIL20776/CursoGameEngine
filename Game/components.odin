@@ -32,6 +32,8 @@ Movement :: struct{
     axis_y: f32,
 }
 
+Camera :: rl.Camera2D
+
 Position :: rl.Vector2
 
 

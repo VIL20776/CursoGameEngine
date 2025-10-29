@@ -86,8 +86,10 @@ SetupSampleScene :: proc(scene: ^Scene) {
 
     AddSystems(scene, .SETUP, TilemapSetupSystem)
     AddSystems(scene, .SETUP, PlayerSetupSystem)
+    AddSystems(scene, .SETUP, CameraSetupSystem)
     AddSystems(scene, .EVENTS, InputEventSystem)
     AddSystems(scene, .UPDATE, MovementUpdateSystem)
+    AddSystems(scene, .UPDATE, CameraUpdateSystem)
     AddSystems(scene, .UPDATE, PlayerSpriteUpdateSystem)
     AddSystems(scene, .RENDER, TilemapRenderSystem)
     AddSystems(scene, .RENDER, SpriteRenderSystem)
@@ -130,7 +132,9 @@ Render :: proc(ctx: ^Game) {
     rl.ClearBackground(rl.RAYWHITE)
     cstr := fmt.caprintf("FPS: %d", rl.GetFPS())
 
+    rl.BeginMode2D(ctx.scene.camera)
     for sys in ctx.scene.render do sys(ctx)
+    rl.EndMode2D()
 
     rl.DrawText(cstr, posX = 10, posY = 10, fontSize = 20, color = rl.GRAY)
     rl.EndDrawing()
