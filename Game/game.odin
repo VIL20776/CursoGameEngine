@@ -4,6 +4,7 @@ package game
 import "core:fmt"
 import rl "vendor:raylib"
 import ecs "YggECS/src"
+import fnl "fast_noise_lite"
 
 Game :: struct {
     world: ^ecs.World,
@@ -20,11 +21,22 @@ Game :: struct {
 //Scenes
 
 SetupSampleScene :: proc(scene: ^Scene) {
+    noise := fnl.create_state()
+    noise.frequency = 0.025
 
-    grass_bit_tiles := [dynamic]byte{
-        0, 1, 1, 0, 
-        1, 0, 1, 1 
+    scene.width = 100
+    scene.height = 100
+    scene.int_grid = make([]byte, scene.width * scene.height)
+    
+    index := 0
+    for y := 0; y < scene.height; y += 1 {
+        for x := 0; x < scene.width; x += 1 {
+            value := fnl.get_noise_2d(noise, f32(x), f32(y))
+            scene.int_grid[index] = 1 if value > 0.2 else 0
+            index += 1
+        }
     }
+
     grass_tilemap := TilemapData{
         name = "Grass",
         texture_path = "tiles/Grass.png",
@@ -77,9 +89,9 @@ SetupSampleScene :: proc(scene: ^Scene) {
             255 = rl.Vector2{   0,   0 },
               0 = rl.Vector2{ 16,  32 }
         },
-        bit_tiles = grass_bit_tiles[:],
-        width = 4,
-        height = 2,
+        bit_tiles = scene.int_grid[:],
+        width = scene.width,
+        height = scene.height,
     }
 
     append(&scene.tilemaps, grass_tilemap)
@@ -89,10 +101,13 @@ SetupSampleScene :: proc(scene: ^Scene) {
     AddSystems(scene, .SETUP, CameraSetupSystem)
     AddSystems(scene, .EVENTS, InputEventSystem)
     AddSystems(scene, .UPDATE, MovementUpdateSystem)
+    AddSystems(scene, .UPDATE, ColliderUpdateSystem)
     AddSystems(scene, .UPDATE, CameraUpdateSystem)
     AddSystems(scene, .UPDATE, PlayerSpriteUpdateSystem)
     AddSystems(scene, .RENDER, TilemapRenderSystem)
     AddSystems(scene, .RENDER, SpriteRenderSystem)
+    AddSystems(scene, .RENDER, ColliderRenderSystem)
+    AddSystems(scene, .RENDER, IntGridRenderSystem)
 }
 
 Init :: proc(ctx: ^Game, name: cstring, width: i32, height: i32) {

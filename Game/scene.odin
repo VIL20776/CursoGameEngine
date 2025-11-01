@@ -3,7 +3,9 @@ package game
 Scene :: struct {
     // Data
     camera: Camera,
+    int_grid: []byte,
     tilemaps: [dynamic]TilemapData,
+    width, height: int,
     // Procedures
     setup: [dynamic]proc(ctx: ^Game),
     events: [dynamic]proc(ctx: ^Game),
@@ -26,15 +28,17 @@ InitScene :: proc(scene: ^Scene) {
 }
 
 DeinitScene :: proc(scene: ^Scene) {
+    delete(scene.int_grid)
+
     delete(scene.setup)
     delete(scene.events)
     delete(scene.update)
     delete(scene.render)
 
     for tilemap in scene.tilemaps {
-        delete(tilemap.bit_tiles)
         delete(tilemap.bitmap)
     }
+    delete(scene.tilemaps)
 }
 
 AddSystems :: proc(scene: ^Scene, phase: ScenePhase, systems: ..proc(ctx: ^Game)) {
